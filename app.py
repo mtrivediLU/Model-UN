@@ -8,16 +8,31 @@ from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any, Optional
 
-env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(env_path)
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except Exception:
+    pass
+
+def get_secret(name: str, default: str = "") -> str:
+    # Streamlit Cloud: secrets live in st.secrets
+    try:
+        if name in st.secrets:
+            return str(st.secrets.get(name, default)).strip()
+    except Exception:
+        pass
+    # Local dev fallback: environment variables / .env
+    return str(os.getenv(name, default)).strip()
 
 # ---------------------------------------------------------
-# CONFIGURATION (PASTE YOUR KEYS HERE)
+# KEYS (from Streamlit Secrets on cloud, from .env locally)
 # ---------------------------------------------------------
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+OPENROUTER_API_KEY = get_secret("OPENROUTER_API_KEY")
+GROQ_API_KEY = get_secret("GROQ_API_KEY")
+SARVAM_API_KEY = get_secret("SARVAM_API_KEY")
+GEMINI_API_KEY = get_secret("GEMINI_API_KEY")
 
 
 # ---------------------------------------------------------
